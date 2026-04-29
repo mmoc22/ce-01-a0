@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>个人简历制作</title>
+  <!-- 导出PDF依赖 -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "SimSun", "宋体", sans-serif;
+    }
+    body {
+      background: #f5f5f5;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      gap: 30px;
+    }
+    /* 编辑区样式 */
+    .edit-box {
+      width: 40%;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .edit-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 15px;
+      color: #333;
+    }
+    .form-item {
+      margin-bottom: 12px;
+    }
+    .form-item label {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 5px;
+      color: #666;
+    }
+    .form-item input, .form-item textarea {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      outline: none;
+    }
+    .form-item textarea {
+      resize: vertical;
+      height: 80px;
+    }
+    /* 照片上传按钮 */
+    #avatarInput {
+      padding: 5px;
+      border: none;
+    }
+    .export-btn {
+      width: 100%;
+      padding: 10px;
+      background: #222;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 15px;
+    }
+    .export-btn:hover {
+      background: #000;
+    }
+    /* 简历预览区（完全匹配你的样式+照片位置） */
+    .resume-box {
+      width: 60%;
+      background: #fff;
+      padding: 40px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      min-height: 1000px;
+    }
+    .resume-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .resume-title {
+      font-size: 22px;
+      font-weight: bold;
+      letter-spacing: 2px;
+    }
+    /* 照片位置：右侧1寸照区域 */
+    .avatar-box {
+      width: 100px;
+      height: 140px;
+      border: 1px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: #666;
+      overflow: hidden;
+    }
+    .avatar-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .base-info {
+      font-size: 15px;
+      line-height: 28px;
+      margin-bottom: 25px;
+    }
+    .info-item {
+      margin-right: 20px;
+    }
+    .section {
+      margin-bottom: 20px;
+    }
+    .section-title {
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #333;
+      padding-bottom: 3px;
+    }
+    .section-content {
+      font-size: 15px;
+      line-height: 26px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- 左侧编辑区 -->
+    <div class="edit-box">
+      <div class="edit-title">📝 简历编辑</div>
+      <!-- 新增：照片上传 -->
+      <div class="form-item">
+        <label>上传证件照（1寸）</label>
+        <input type="file" id="avatarInput" accept="image/*">
+      </div>
+      <!-- 基本信息 -->
+      <div class="form-item">
+        <label>姓名</label>
+        <input type="text" id="name" value="龙梓豪">
+      </div>
+      <div class="form-item">
+        <label>出生年月</label>
+        <input type="text" id="birth" value="2005年12">
+      </div>
+      <div class="form-item">
+        <label>最高学历</label>
+        <input type="text" id="edu-level" value="大学本科">
+      </div>
+      <div class="form-item">
+        <label>工作年限</label>
+        <input type="text" id="work-year" value="应届生">
+      </div>
+      <div class="form-item">
+        <label>求职意向</label>
+        <input type="text" id="job" value="实习岗">
+      </div>
+      <div class="form-item">
+        <label>联系电话</label>
+        <input type="text" id="phone" value="18022680608">
+      </div>
+      <div class="form-item">
+        <label>电子邮箱</label>
+        <input type="text" id="email" value="无">
+      </div>
+      <div class="form-item">
+        <label>居住地址</label>
+        <input type="text" id="address" value="无">
+      </div>
+      <!-- 教育背景 -->
+      <div class="form-item">
+        <label>教育背景</label>
+        <textarea id="edu-info">2025年09-2029年06
+广州软件学院
+物联网工程(本科)
+主修课程：
+高等数学､线性代数､概率论与数理统计､大学物理､大学英语､思想政治理论､工程图学､程序设计基础 (C/C++/Python):编程入门,为后续开发打基础</textarea>
+      </div>
+      <!-- 工作经历 -->
+      <div class="form-item">
+        <label>工作经历</label>
+        <textarea id="work-info">暂无</textarea>
+      </div>
+      <!-- 个人技能 -->
+      <div class="form-item">
+        <label>个人技能</label>
+        <textarea id="skill-info">语言技能：大学英语四(CET-4)，普通话良好
+办公技能：熟练使用Word､PowerPoint､Excel等基础办公软件
+通用技能：通过全国计算机二级考试</textarea>
+      </div>
+      <!-- 个人评价 -->
+      <div class="form-item">
+        <label>个人评价</label>
+        <textarea id="evaluate-info">本人性格开朗大方，踏实稳重，善于人际沟通，敢于承担责任，为人热情，诚实守信，对工作尽量做到最好，我较强的自学能力，能快速学会新的知识，有较强的团队合作精神，能快速适应各种环境。</textarea>
+      </div>
+      <button class="export-btn" id="exportPdf">一键导出PDF简历</button>
+    </div>
+
+    <!-- 右侧简历预览区（带照片位置） -->
+    <div class="resume-box" id="resumePreview">
+      <!-- 标题+照片区域 -->
+      <div class="resume-header">
+        <div class="resume-title">个人简历 RESUME</div>
+        <!-- 贴照片的位置 -->
+        <div class="avatar-box" id="avatarBox">
+          此处贴证件照
+        </div>
+      </div>
+
+      <div class="base-info" id="baseInfo">
+        <span class="info-item">龙梓豪</span>
+        <span class="info-item">出生年月:2005年12</span>
+        <span class="info-item">最高学历:大学本科</span>
+        <br>
+        <span class="info-item">工作年限:应届生</span>
+        <span class="info-item">求职意向:实习岗</span>
+        <br>
+        <span class="info-item">联系电话:18022680608</span>
+        <span class="info-item">电子邮箱:无</span>
+        <span class="info-item">居住地址:无</span>
+      </div>
+
+      <div class="section">
+        <div class="section-title">教育背景</div>
+        <div class="section-content" id="eduContent">
+          2025年09-2029年06<br>
+          广州软件学院<br>
+          物联网工程(本科)<br>
+          主修课程：<br>
+          高等数学､线性代数､概率论与数理统计､大学物理､大学英语､思想政治理论､工程图学､程序设计基础 (C/C++/Python):编程入门,为后续开发打基础
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">工作经历</div>
+        <div class="section-content" id="workContent">暂无</div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">个人技能</div>
+        <div class="section-content" id="skillContent">
+          语言技能：大学英语四(CET-4)，普通话良好<br>
+          办公技能：熟练使用Word､PowerPoint､Excel等基础办公软件<br>
+          通用技能：通过全国计算机二级考试
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">个人评价</div>
+        <div class="section-content" id="evaluateContent">
+         本人性格开朗大方，踏实稳重，善于人际沟通，敢于承担责任，为人热情，诚实守信，对工作尽量做到最好，我较强的自学能力，能快速学会新的知识，有较强的团队合作精神，能快速适应各种环境。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const { jsPDF } = window.jspdf;
+    const avatarInput = document.getElementById('avatarInput');
+    const avatarBox = document.getElementById('avatarBox');
+
+    // 1. 照片上传预览功能
+    avatarInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          avatarBox.innerHTML = `<img src="${event.target.result}" alt="证件照">`;
+        }
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // 2. 实时同步编辑内容到简历预览
+    const inputs = document.querySelectorAll('input:not(#avatarInput), textarea');
+    inputs.forEach(item => {
+      item.addEventListener('input', updateResume);
+    });
+
+    // 3. 更新简历内容
+    function updateResume() {
+      // 基本信息
+      document.getElementById('baseInfo').innerHTML = `
+        <span class="info-item">${document.getElementById('name').value}</span>
+        <span class="info-item">出生年月:${document.getElementById('birth').value}</span>
+        <span class="info-item">最高学历:${document.getElementById('edu-level').value}</span>
+        <br>
+        <span class="info-item">工作年限:${document.getElementById('work-year').value}</span>
+        <span class="info-item">求职意向:${document.getElementById('job').value}</span>
+        <br>
+        <span class="info-item">联系电话:${document.getElementById('phone').value}</span>
+        <span class="info-item">电子邮箱:${document.getElementById('email').value}</span>
+        <span class="info-item">居住地址:${document.getElementById('address').value}</span>
+      `;
+      // 教育背景
+      document.getElementById('eduContent').innerHTML = document.getElementById('edu-info').value.replace(/\n/g, '<br>');
+      // 工作经历
+      document.getElementById('workContent').innerHTML = document.getElementById('work-info').value.replace(/\n/g, '<br>');
+      // 个人技能
+      document.getElementById('skillContent').innerHTML = document.getElementById('skill-info').value.replace(/\n/g, '<br>');
+      // 个人评价
+      document.getElementById('evaluateContent').innerHTML = document.getElementById('evaluate-info').value.replace(/\n/g, '<br>');
+    }
+
+    // 4. 导出PDF（包含照片）
+    document.getElementById('exportPdf').addEventListener('click', async () => {
+      const resume = document.getElementById('resumePreview');
+      const canvas = await html2canvas(resume, { scale: 2, useCORS: true });
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgWidth = 210;
+      const imgHeight = canvas.height * imgWidth / canvas.width;
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, imgWidth, imgHeight);
+      pdf.save('个人简历.pdf');
+    });
+  </script>
+</body>
+</html>
