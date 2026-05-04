@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>作业管理系统</title>
+    <style>
+        :root {
+            --bg-primary: #f5f7fa;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --bg-input: #f9fafb;
+            --text-primary: #1a1a2e;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
+            --border-color: #e5e7eb;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
+            --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+            --transition: all 0.3s ease;
+            --color-pending: #9ca3af;
+            --color-pending-bg: #f3f4f6;
+            --color-progress: #3b82f6;
+            --color-progress-bg: #eff6ff;
+            --color-done: #10b981;
+            --color-done-bg: #ecfdf5;
+            --color-overdue: #ef4444;
+            --color-overdue-bg: #fef2f2;
+            --color-high: #ef4444;
+            --color-medium: #f59e0b;
+            --color-low: #10b981;
+            --nav-bg: #ffffff;
+            --nav-text: #1a1a2e;
+            --accent: #667eea;
+            --accent-hover: #5a67d8;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #1e293b;
+            --bg-input: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border-color: #334155;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.4);
+            --shadow-lg: 0 10px 25px rgba(0,0,0,0.5);
+            --nav-bg: #1e293b;
+            --nav-text: #f1f5f9;
+            --accent: #818cf8;
+            --accent-hover: #a5b4fc;
+            --color-pending-bg: #374151;
+            --color-progress-bg: #1e3a5f;
+            --color-done-bg: #064e3b;
+            --color-overdue-bg: #450a0a;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            transition: var(--transition);
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background-color: var(--nav-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 24px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            transition: var(--transition);
+        }
+
+        .navbar-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--nav-text);
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .current-date {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .theme-toggle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            font-size: 1.1rem;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: var(--shadow-md);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .add-form {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .form-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-input {
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            transition: var(--transition);
+            outline: none;
+            font-family: inherit;
+        }
+
+        .form-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .progress-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .progress-btn {
+            padding: 8px 20px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: var(--bg-input);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .progress-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .progress-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .progress-btn[data-value="0"].active {
+            background: var(--color-pending);
+            border-color: var(--color-pending);
+        }
+
+        .progress-btn[data-value="50"].active {
+            background: var(--color-progress);
+            border-color: var(--color-progress);
+        }
+
+        .progress-btn[data-value="100"].active {
+            background: var(--color-done);
+            border-color: var(--color-done);
+        }
+
+        .submit-btn {
+            padding: 12px 28px;
+            background: linear-gradient(135deg, var(--accent) 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 18px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            cursor: default;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .stat-card.total .stat-value { color: var(--accent); }
+        .stat-card.progress .stat-value { color: var(--color-progress); }
+        .stat-card.done .stat-value { color: var(--color-done); }
+        .stat-card.overdue .stat-value { color: var(--color-overdue); }
+        .stat-card.high .stat-value { color: var(--color-high); }
+
+        .filter-bar {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 14px 18px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 24px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .filter-select {
+            padding: 7px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: var(--transition);
+            outline: none;
+        }
+
+        .filter-select:focus {
+            border-color: var(--accent);
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+            min-width: 180px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 7px 10px 7px 32px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            transition: var(--transition);
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .sort-btn {
+            padding: 7px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+
+        .sort-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .sort-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .homework-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 18px;
+        }
+
+        .homework-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .homework-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .card-header {
+            padding: 18px 18px 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .card-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            gap: 8px;
+        }
+
+        .course-name {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: rgba(102, 126, 234, 0.1);
+            padding: 3px 10px;
+            border-radius: 20px;
+            word-break: break-all;
+        }
+
+        .priority-badge {
+            font-size: 0.65rem;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .priority-high {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--color-high);
+        }
+
+        .priority-medium {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--color-medium);
+        }
+
+        .priority-low {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--color-low);
+        }
+
+        .homework-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+            word-break: break-all;
+        }
+
+        .card-body {
+            padding: 14px 18px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .info-label {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .info-value {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .deadline-value {
+            font-family: 'SF Mono', 'Consolas', monospace;
+            font-size: 0.8rem;
+        }
+
+        .deadline-overdue {
+            color: var(--color-overdue);
+            font-weight: 600;
+        }
+
+        .deadline-soon {
+            color: var(--color-medium);
+            font-weight: 600;
+        }
+
+        .progress-section {
+            margin-top: 6px;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .progress-text {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .progress-bar-bg {
+            width: 100%;
+            height: 8px;
+            background: var(--bg-primary);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+        }
+
+        .status-pending {
+            background: var(--color-pending-bg);
+            color: var(--color-pending);
+        }
+        .status-pending .status-dot { background: var(--color-pending); }
+
+        .status-progress {
+            background: var(--color-progress-bg);
+            color: var(--color-progress);
+        }
+        .status-progress .status-dot { background: var(--color-progress); }
+
+        .status-done {
+            background: var(--color-done-bg);
+            color: var(--color-done);
+        }
+        .status-done .status-dot { background: var(--color-done); }
+
+        .status-overdue {
+            background: var(--color-overdue-bg);
+            color: var(--color-overdue);
+        }
+        .status-overdue .status-dot { background: var(--color-overdue); }
+
+        .card-detail {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+            border-top: 1px solid transparent;
+        }
+
+        .card-detail.expanded {
+            max-height: 320px;
+            padding: 14px 18px;
+            border-top-color: var(--border-color);
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            font-size: 0.85rem;
+        }
+
+        .detail-label {
+            color: var(--text-muted);
+        }
+
+        .detail-value {
+            color: var(--text-secondary);
+            font-weight: 500;
+            word-break: break-all;
+            text-align: right;
+            max-width: 60%;
+        }
+
+        .expand-hint {
+            text-align: center;
+            padding: 6px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .expand-hint:hover {
+            color: var(--accent);
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--color-overdue);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: var(--transition);
+            z-index: 2;
+        }
+
+        .homework-card:hover .delete-btn {
+            opacity: 1;
+        }
+
+        .delete-btn:hover {
+            background: var(--color-overdue);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .card-progress-edit {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed var(--border-color);
+        }
+
+        .card-progress-btn {
+            flex: 1;
+            padding: 6px 0;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: var(--bg-input);
+            color: var(--text-secondary);
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: center;
+        }
+
+        .card-progress-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .card-progress-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .card-progress-btn[data-value="0"].active {
+            background: var(--color-pending);
+            border-color: var(--color-pending);
+        }
+
+        .card-progress-btn[data-value="50"].active {
+            background: var(--color-progress);
+            border-color: var(--color-progress);
+        }
+
+        .card-progress-btn[data-value="100"].active {
+            background: var(--color-done);
+            border-color: var(--color-done);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        .empty-text {
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 30px 20px 20px;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .storage-hint {
+            text-align: center;
+            padding: 8px 16px;
+            margin-bottom: 16px;
+            background: rgba(102, 126, 234, 0.08);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: var(--radius-sm);
+            color: var(--accent);
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        @media (max-width: 768px) {
+            .navbar { padding: 0 16px; }
+            .navbar-content { height: 56px; }
+            .logo { font-size: 1.05rem; }
+            .current-date { display: none; }
+            .container { padding: 16px; }
+            .add-form { padding: 18px; }
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+            }
+            .stat-card { padding: 14px; }
+            .stat-value { font-size: 1.4rem; }
+            .filter-bar { padding: 12px 14px; }
+            .filter-group { width: 100%; }
+            .filter-select, .search-input { flex: 1; }
+            .homework-grid {
+                grid-template-columns: 1fr;
+                gap: 14px;
+            }
+            .delete-btn { opacity: 1; }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .progress-buttons { justify-content: stretch; }
+            .progress-btn { flex: 1; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="logo">
+                <div class="logo-icon">📚</div>
+                <span>作业管理系统</span>
+            </div>
+            <div class="navbar-right">
+                <span class="current-date" id="currentDate"></span>
+                <button class="theme-toggle" id="themeToggle" title="切换主题">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="storage-hint" id="storageHint">
+            <span>💾</span>
+            <span>数据已保存在本机浏览器中，刷新不会丢失</span>
+        </div>
+
+        <div class="add-form">
+            <div class="form-title">➕ 添加新作业</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">课程名称</label>
+                    <input type="text" class="form-input" id="inputCourse" placeholder="例如：高等数学">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">作业名称</label>
+                    <input type="text" class="form-input" id="inputName" placeholder="例如：第三章习题">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">截止时间</label>
+                    <input type="datetime-local" class="form-input" id="inputDeadline">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">优先级</label>
+                    <select class="form-input" id="inputPriority">
+                        <option value="高">高</option>
+                        <option value="中" selected>中</option>
+                        <option value="低">低</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label class="form-label">完成进度</label>
+                <div class="progress-buttons">
+                    <button class="progress-btn" data-value="0" onclick="selectProgress(0)">0%</button>
+                    <button class="progress-btn" data-value="50" onclick="selectProgress(50)">50%</button>
+                    <button class="progress-btn active" data-value="100" onclick="selectProgress(100)">100%</button>
+                </div>
+            </div>
+            <button class="submit-btn" onclick="addHomework()">
+                <span>✓</span>
+                <span>添加作业</span>
+            </button>
+        </div>
+
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card total">
+                <div class="stat-label">总作业数</div>
+                <div class="stat-value" id="statTotal">0</div>
+            </div>
+            <div class="stat-card progress">
+                <div class="stat-label">进行中</div>
+                <div class="stat-value" id="statProgress">0</div>
+            </div>
+            <div class="stat-card done">
+                <div class="stat-label">已完成</div>
+                <div class="stat-value" id="statDone">0</div>
+            </div>
+            <div class="stat-card overdue">
+                <div class="stat-label">已逾期</div>
+                <div class="stat-value" id="statOverdue">0</div>
+            </div>
+            <div class="stat-card high">
+                <div class="stat-label">高优先级</div>
+                <div class="stat-value" id="statHigh">0</div>
+            </div>
+        </div>
+
+        <div class="filter-bar">
+            <div class="filter-group">
+                <span class="filter-label">状态</span>
+                <select class="filter-select" id="filterStatus">
+                    <option value="all">全部</option>
+                    <option value="未开始">未开始</option>
+                    <option value="进行中">进行中</option>
+                    <option value="已完成">已完成</option>
+                    <option value="已逾期">已逾期</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <span class="filter-label">优先级</span>
+                <select class="filter-select" id="filterPriority">
+                    <option value="all">全部</option>
+                    <option value="高">高</option>
+                    <option value="中">中</option>
+                    <option value="低">低</option>
+                </select>
+            </div>
+            <div class="filter-group" style="flex: 1;">
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" class="search-input" id="searchInput" placeholder="搜索课程或作业名称...">
+                </div>
+            </div>
+            <button class="sort-btn" id="sortBtn" data-order="asc">
+                <span>⏰</span>
+                <span>截止时间</span>
+                <span id="sortIcon">↑</span>
+            </button>
+        </div>
+
+        <div class="homework-grid" id="homeworkGrid"></div>
+        <div class="empty-state" id="emptyState" style="display: none;">
+            <div class="empty-icon">📭</div>
+            <div class="empty-text">没有找到匹配的作业</div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>© 2026 作业管理系统 | 数据保存在本机浏览器</p>
+    </footer>
+
+    <script>
+        // ==================== localStorage 键名 ====================
+        const STORAGE_KEY = 'homework_data_v1';
+        const STORAGE_NEXT_ID = 'homework_next_id';
+
+        // ==================== 默认预置数据 ====================
+        const defaultData = [
+            { id: 1, course: "高等数学", name: "第三章微积分习题集", deadline: "2026-05-10 23:59", progress: 50, status: "进行中", priority: "高" },
+            { id: 2, course: "计算机网络", name: "TCP/IP协议分析实验报告", deadline: "2026-05-08 18:00", progress: 0, status: "未开始", priority: "高" },
+            { id: 3, course: "数据结构", name: "红黑树实现与性能分析", deadline: "2026-05-15 23:59", progress: 100, status: "已完成", priority: "中" },
+            { id: 4, course: "英语写作", name: "学术论文摘要撰写", deadline: "2026-05-05 12:00", progress: 100, status: "已完成", priority: "低" },
+            { id: 5, course: "操作系统", name: "进程调度算法模拟程序", deadline: "2026-05-03 23:59", progress: 50, status: "已逾期", priority: "高" },
+            { id: 6, course: "数据库原理", name: "SQL查询优化案例分析", deadline: "2026-05-12 20:00", progress: 50, status: "进行中", priority: "中" },
+            { id: 7, course: "软件工程", name: "需求规格说明书", deadline: "2026-05-20 23:59", progress: 0, status: "未开始", priority: "低" },
+            { id: 8, course: "机器学习", name: "神经网络反向传播推导", deadline: "2026-05-07 18:00", progress: 100, status: "已完成", priority: "中" }
+        ];
+
+        // ==================== 数据持久化 ====================
+
+        /**
+         * 从 localStorage 加载数据，首次使用默认数据
+         */
+        function loadData() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    return JSON.parse(saved);
+                }
+            } catch (e) {
+                console.warn('读取本地存储失败:', e);
+            }
+            return [...defaultData];
+        }
+
+        /**
+         * 保存数据到 localStorage
+         */
+        function saveData() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(homeworkData));
+                localStorage.setItem(STORAGE_NEXT_ID, String(nextId));
+            } catch (e) {
+                console.warn('保存到本地存储失败:', e);
+                alert('保存失败，可能是存储空间已满');
+            }
+        }
+
+        /**
+         * 加载下一个 ID
+         */
+        function loadNextId() {
+            try {
+                const saved = localStorage.getItem(STORAGE_NEXT_ID);
+                if (saved) return parseInt(saved);
+            } catch (e) {}
+            return 9;
+        }
+
+        /**
+         * 重置为默认数据（调试用）
+         */
+        function resetData() {
+            if (confirm('确定要清空所有数据并恢复默认吗？此操作不可撤销。')) {
+                localStorage.removeItem(STORAGE_KEY);
+                localStorage.removeItem(STORAGE_NEXT_ID);
+                homeworkData = [...defaultData];
+                nextId = 9;
+                saveData();
+                render();
+            }
+        }
+
+        // ==================== 应用数据 ====================
+        let homeworkData = loadData();
+        let nextId = loadNextId();
+
+        let currentFilter = {
+            status: 'all',
+            priority: 'all',
+            search: '',
+            sortOrder: 'asc'
+        };
+
+        let selectedProgress = 100;
+
+        const elements = {
+            currentDate: document.getElementById('currentDate'),
+            themeToggle: document.getElementById('themeToggle'),
+            statTotal: document.getElementById('statTotal'),
+            statProgress: document.getElementById('statProgress'),
+            statDone: document.getElementById('statDone'),
+            statOverdue: document.getElementById('statOverdue'),
+            statHigh: document.getElementById('statHigh'),
+            filterStatus: document.getElementById('filterStatus'),
+            filterPriority: document.getElementById('filterPriority'),
+            searchInput: document.getElementById('searchInput'),
+            sortBtn: document.getElementById('sortBtn'),
+            sortIcon: document.getElementById('sortIcon'),
+            homeworkGrid: document.getElementById('homeworkGrid'),
+            emptyState: document.getElementById('emptyState'),
+            inputCourse: document.getElementById('inputCourse'),
+            inputName: document.getElementById('inputName'),
+            inputDeadline: document.getElementById('inputDeadline'),
+            inputPriority: document.getElementById('inputPriority'),
+            storageHint: document.getElementById('storageHint')
+        };
+
+        // ==================== 工具函数 ====================
+
+        function updateCurrentDate() {
+            const now = new Date();
+            const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+            elements.currentDate.textContent = now.toLocaleDateString('zh-CN', options);
+        }
+
+        function parseDate(dateStr) {
+            return new Date(dateStr.replace(' ', 'T'));
+        }
+
+        function formatDateTime(date) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            const h = String(date.getHours()).padStart(2, '0');
+            const min = String(date.getMinutes()).padStart(2, '0');
+            return `${y}-${m}-${d} ${h}:${min}`;
+        }
+
+        function getTimeRemaining(deadline) {
+            const now = new Date();
+            const end = parseDate(deadline);
+            const diff = end - now;
+            if (diff < 0) return { text: '已逾期', overdue: true, soon: false };
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            if (days === 0) return { text: `${hours}小时后截止`, overdue: false, soon: true };
+            return { text: `${days}天 ${hours}小时`, overdue: false, soon: days <= 2 };
+        }
+
+        function getProgressColor(progress) {
+            if (progress === 0) return 'var(--color-pending)';
+            if (progress === 100) return 'var(--color-done)';
+            return 'var(--color-progress)';
+        }
+
+        function getStatusFromProgress(progress, deadline) {
+            const end = parseDate(deadline);
+            const now = new Date();
+            if (end < now) return '已逾期';
+            if (progress === 0) return '未开始';
+            if (progress === 100) return '已完成';
+            return '进行中';
+        }
+
+        function initTheme() {
+            const savedTheme = localStorage.getItem('homework-theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeIcon(savedTheme);
+        }
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') || 'light';
+            const next = current === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('homework-theme', next);
+            updateThemeIcon(next);
+        }
+
+        function updateThemeIcon(theme) {
+            elements.themeToggle.textContent = theme === 'light' ? '🌙' : '☀️';
+        }
+
+        function selectProgress(value) {
+            selectedProgress = value;
+            document.querySelectorAll('.add-form .progress-btn').forEach(btn => {
+                btn.classList.toggle('active', parseInt(btn.dataset.value) === value);
+            });
+        }
+
+        function addHomework() {
+            const course = elements.inputCourse.value.trim();
+            const name = elements.inputName.value.trim();
+            const deadline = elements.inputDeadline.value;
+            const priority = elements.inputPriority.value;
+
+            if (!course || !name || !deadline) {
+                alert('请填写完整信息：课程名称、作业名称和截止时间');
+                return;
+            }
+
+            const formattedDeadline = formatDateTime(new Date(deadline));
+            const status = getStatusFromProgress(selectedProgress, formattedDeadline);
+
+            homeworkData.push({
+                id: nextId++,
+                course,
+                name,
+                deadline: formattedDeadline,
+                progress: selectedProgress,
+                status,
+                priority
+            });
+
+            saveData();
+
+            elements.inputCourse.value = '';
+            elements.inputName.value = '';
+            elements.inputDeadline.value = '';
+            elements.inputPriority.value = '中';
+            selectProgress(100);
+
+            render();
+        }
+
+        function deleteHomework(id, event) {
+            event.stopPropagation();
+            if (confirm('确定要删除这条作业吗？')) {
+                homeworkData = homeworkData.filter(item => item.id !== id);
+                saveData();
+                render();
+            }
+        }
+
+        function updateProgress(id, newProgress, event) {
+            event.stopPropagation();
+            const item = homeworkData.find(h => h.id === id);
+            if (!item) return;
+
+            item.progress = newProgress;
+            item.status = getStatusFromProgress(newProgress, item.deadline);
+
+            saveData();
+            render();
+        }
+
+        function filterHomework(data) {
+            return data.filter(item => {
+                if (currentFilter.status !== 'all' && item.status !== currentFilter.status) return false;
+                if (currentFilter.priority !== 'all' && item.priority !== currentFilter.priority) return false;
+                if (currentFilter.search) {
+                    const searchLower = currentFilter.search.toLowerCase();
+                    const matchCourse = item.course.toLowerCase().includes(searchLower);
+                    const matchName = item.name.toLowerCase().includes(searchLower);
+                    if (!matchCourse && !matchName) return false;
+                }
+                return true;
+            });
+        }
+
+        function sortHomework(data) {
+            return [...data].sort((a, b) => {
+                const dateA = parseDate(a.deadline);
+                const dateB = parseDate(b.deadline);
+                return currentFilter.sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+            });
+        }
+
+        function toggleSort() {
+            currentFilter.sortOrder = currentFilter.sortOrder === 'asc' ? 'desc' : 'asc';
+            elements.sortIcon.textContent = currentFilter.sortOrder === 'asc' ? '↑' : '↓';
+            elements.sortBtn.classList.toggle('active', true);
+            render();
+        }
+
+        function updateStats(data) {
+            elements.statTotal.textContent = data.length;
+            elements.statProgress.textContent = data.filter(d => d.status === '进行中').length;
+            elements.statDone.textContent = data.filter(d => d.status === '已完成').length;
+            elements.statOverdue.textContent = data.filter(d => d.status === '已逾期').length;
+            elements.statHigh.textContent = data.filter(d => d.priority === '高').length;
+        }
+
+        function renderCards(data) {
+            if (data.length === 0) {
+                elements.homeworkGrid.style.display = 'none';
+                elements.emptyState.style.display = 'block';
+                return;
+            }
+
+            elements.homeworkGrid.style.display = 'grid';
+            elements.emptyState.style.display = 'none';
+
+            elements.homeworkGrid.innerHTML = data.map(item => {
+                const timeInfo = getTimeRemaining(item.deadline);
+                const progressColor = getProgressColor(item.progress);
+                const statusClass = `status-${item.status === '未开始' ? 'pending' : item.status === '进行中' ? 'progress' : item.status === '已完成' ? 'done' : 'overdue'}`;
+                const priorityClass = `priority-${item.priority === '高' ? 'high' : item.priority === '中' ? 'medium' : 'low'}`;
+                const deadlineClass = timeInfo.overdue ? 'deadline-overdue' : timeInfo.soon ? 'deadline-soon' : '';
+
+                return `
+                    <div class="homework-card" data-id="${item.id}">
+                        <button class="delete-btn" onclick="deleteHomework(${item.id}, event)" title="删除">✕</button>
+                        <div class="card-header">
+                            <div class="card-meta">
+                                <span class="course-name">${escapeHtml(item.course)}</span>
+                                <span class="priority-badge ${priorityClass}">${item.priority}优先级</span>
+                            </div>
+                            <h3 class="homework-title">${escapeHtml(item.name)}</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="info-row">
+                                <span class="info-label">截止时间</span>
+                                <span class="info-value deadline-value ${deadlineClass}">${item.deadline}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">剩余时间</span>
+                                <span class="info-value ${deadlineClass}">${timeInfo.text}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">当前状态</span>
+                                <span class="status-badge ${statusClass}">
+                                    <span class="status-dot"></span>
+                                    ${item.status}
+                                </span>
+                            </div>
+                            <div class="progress-section">
+                                <div class="progress-header">
+                                    <span class="progress-text">完成进度</span>
+                                    <span class="progress-text">${item.progress}%</span>
+                                </div>
+                                <div class="progress-bar-bg">
+                                    <div class="progress-bar-fill" style="width: ${item.progress}%; background: ${progressColor};"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-detail" id="detail-${item.id}">
+                            <div class="detail-item">
+                                <span class="detail-label">作业编号</span>
+                                <span class="detail-value">#${String(item.id).padStart(3, '0')}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">所属课程</span>
+                                <span class="detail-value">${escapeHtml(item.course)}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">作业名称</span>
+                                <span class="detail-value">${escapeHtml(item.name)}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">优先级</span>
+                                <span class="detail-value">${item.priority}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">状态说明</span>
+                                <span class="detail-value">${item.status === '已完成' ? '作业已全部完成' : item.status === '已逾期' ? '已超过截止时间，请尽快补交' : item.status === '未开始' ? '尚未开始，请尽快着手' : `已完成 ${item.progress}%，继续努力`}</span>
+                            </div>
+                            <div class="card-progress-edit">
+                                <button class="card-progress-btn ${item.progress === 0 ? 'active' : ''}" data-value="0" onclick="updateProgress(${item.id}, 0, event)">0%</button>
+                                <button class="card-progress-btn ${item.progress === 50 ? 'active' : ''}" data-value="50" onclick="updateProgress(${item.id}, 50, event)">50%</button>
+                                <button class="card-progress-btn ${item.progress === 100 ? 'active' : ''}" data-value="100" onclick="updateProgress(${item.id}, 100, event)">100%</button>
+                            </div>
+                        </div>
+                        <div class="expand-hint" onclick="event.stopPropagation(); toggleCardDetail(${item.id})">点击查看详情</div>
+                    </div>
+                `;
+            }).join('');
+
+            document.querySelectorAll('.homework-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const id = parseInt(card.getAttribute('data-id'));
+                    toggleCardDetail(id);
+                });
+            });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function toggleCardDetail(id) {
+            const detail = document.getElementById(`detail-${id}`);
+            const card = document.querySelector(`.homework-card[data-id="${id}"]`);
+            const hint = card.querySelector('.expand-hint');
+
+            if (detail.classList.contains('expanded')) {
+                detail.classList.remove('expanded');
+                hint.textContent = '点击查看详情';
+            } else {
+                document.querySelectorAll('.card-detail.expanded').forEach(d => d.classList.remove('expanded'));
+                document.querySelectorAll('.expand-hint').forEach(h => h.textContent = '点击查看详情');
+                detail.classList.add('expanded');
+                hint.textContent = '点击收起详情';
+            }
+        }
+
+        function render() {
+            const filtered = filterHomework(homeworkData);
+            const sorted = sortHomework(filtered);
+            updateStats(homeworkData);
+            renderCards(sorted);
+        }
+
+        function bindEvents() {
+            elements.themeToggle.addEventListener('click', toggleTheme);
+            elements.filterStatus.addEventListener('change', (e) => {
+                currentFilter.status = e.target.value;
+                render();
+            });
+            elements.filterPriority.addEventListener('change', (e) => {
+                currentFilter.priority = e.target.value;
+                render();
+            });
+            elements.searchInput.addEventListener('input', (e) => {
+                currentFilter.search = e.target.value.trim();
+                render();
+            });
+            elements.sortBtn.addEventListener('click', toggleSort);
+        }
+
+        function init() {
+            updateCurrentDate();
+            initTheme();
+            bindEvents();
+            render();
+        }
+
+        init();
+    </script>
+</body>
+</html>
